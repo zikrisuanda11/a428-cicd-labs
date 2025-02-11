@@ -11,7 +11,7 @@ node {
                 sh 'npm install'
                 sh 'npm run build'
                 // Copy hasil build ke volume yang terhubung ke host
-                sh 'cp -r ./build /app/'
+                // sh 'cp -r ./build /app/'
             } catch (err) {
                 error("Build failed: ${err}")
             }
