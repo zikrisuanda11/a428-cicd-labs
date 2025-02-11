@@ -36,12 +36,13 @@ node {
 
         withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
             try {
-                // Pastikan build hasil dari kontainer tersedia
+                // Salin seluruh proyek ke EC2
                 sh """
                     chmod 600 $EC2_KEY
-                    scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ${buildDir} ${ec2User}@${ec2Ip}:/home/admin/react-app
+                    scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ${env.WORKSPACE}/* ${ec2User}@${ec2Ip}:/home/admin/react-app
                 """
 
+                // Jalankan perintah di EC2
                 sh """
                     ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
                     cd /home/admin/react-app &&
@@ -59,4 +60,34 @@ node {
         sleep 60
         echo "Tahap deploy selesai."
     }
+
+    // stage('Deploy') {
+    //     def ec2Ip = '18.218.217.151'
+    //     def ec2User = 'admin'
+
+    //     withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
+    //         try {
+    //             // Pastikan build hasil dari kontainer tersedia
+    //             sh """
+    //                 chmod 600 $EC2_KEY
+    //                 scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ${buildDir} ${ec2User}@${ec2Ip}:/home/admin/react-app
+    //             """
+
+    //             sh """
+    //                 ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
+    //                 cd /home/admin/react-app &&
+    //                 npm install &&
+    //                 npm run build &&
+    //                 nohup npm start > app.log 2>&1 &
+    //                 "
+    //             """
+    //             echo "Aplikasi berhasil dideploy dan berjalan di EC2"
+    //         } catch (err) {
+    //             error("Delivery process failed: ${err}")
+    //         }
+    //     }
+
+    //     sleep 60
+    //     echo "Tahap deploy selesai."
+    // }
 }
