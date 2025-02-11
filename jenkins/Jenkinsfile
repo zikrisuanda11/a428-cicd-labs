@@ -1,7 +1,7 @@
 node {
     def buildDir = "${env.WORKSPACE}/build"
 
-    docker.image('node:18-bullseye').inside("-v ${buildDir}:/app/build -p 3000:3000") {
+    docker.image('node:16-bullseye').inside("-v ${buildDir}:/app/build -p 3000:3000") {
         environment {
             CI = 'true'
         }
