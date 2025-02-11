@@ -1,5 +1,7 @@
 node {
-    docker.image('node:18-bullseye').inside('-p 3000:3000') {
+    def buildDir = "${env.WORKSPACE}/build-react-app"
+
+    docker.image('node:18-bullseye').inside("-v ${buildDir}:/app/build -p 3000:3000") {
         environment {
             CI = 'true'
         }
@@ -7,6 +9,9 @@ node {
         stage('Build') {
             try {
                 sh 'npm install'
+                sh 'npm run build'
+                // Copy hasil build ke volume yang terhubung ke host
+                sh 'cp -r ./build /app/'
             } catch (err) {
                 error("Build failed: ${err}")
             }
@@ -31,10 +36,10 @@ node {
 
         withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
             try {
-                // Kirim source code ke EC2 dari Jenkins Node langsung
+                // Pastikan build hasil dari kontainer tersedia
                 sh """
                     chmod 600 $EC2_KEY
-                    scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./build ${ec2User}@${ec2Ip}:/home/admin/react-app
+                    scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ${buildDir} ${ec2User}@${ec2Ip}:/home/admin/react-app
                 """
 
                 sh """
