@@ -4,6 +4,14 @@ node {
             CI = 'true'
         }
 
+        stage('Build') {
+            try {
+                sh 'npm install'
+            } catch (err) {
+                error("Build failed: ${err}")
+            }
+        }
+
         stage('Test') {
             try {
                 sh './jenkins/scripts/test.sh'
@@ -23,23 +31,14 @@ node {
             withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
                 try {
                     // Kirim source code ke EC2
-                    // sh """
-                    //     chmod 600 $EC2_KEY
-                    //     scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./* ${ec2User}@${ec2Ip}:/home/admin/my-node-app
-                    // """
-                    // sh """
-                    //     chmod 600 $EC2_KEY
-                    //     rsync -av --exclude 'node_modules' --exclude '.git' --exclude '.env' -e "ssh -o StrictHostKeyChecking=no -i $EC2_KEY" ./ ${ec2User}@${ec2Ip}:/home/admin/my-node-app
-                    // """
                     sh """
-                        chmod 600 "$EC2_KEY"
-                        scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./src ./public ./package.json ./package-lock.json \
-                        ${ec2User}@${ec2Ip}:/home/admin/my-node-app
+                        chmod 600 $EC2_KEY
+                        scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./build ${ec2User}@${ec2Ip}:/home/admin/react-app
                     """
 
                     sh """
                         ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
-                        cd /home/admin/my-node-app &&
+                        cd /home/admin/react-app &&
                         npm install &&
                         npm run build &&
                         nohup npm start > app.log 2>&1 &
