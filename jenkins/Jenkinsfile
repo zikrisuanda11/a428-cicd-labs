@@ -10,11 +10,7 @@ node {
             try {
                 sh 'npm install'
                 sh 'npm run build'
-                // Copy hasil build ke volume yang terhubung ke host
-                // sh 'cp -r ./build /app/'
-                sh 'ls'
-                // sh 'cp ./package.json ./public ./build/'
-                // sh 'ls ./build'
+                // sh 'cp -r ./build/* /app/'
             } catch (err) {
                 error("Build failed: ${err}")
             }
@@ -39,21 +35,22 @@ node {
 
         withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
             try {
-                // Pastikan build hasil dari kontainer tersedia
-                sh """
-                    chmod 600 $EC2_KEY
-                    scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ${buildDir} ${ec2User}@${ec2Ip}:/home/admin/react-app
-                """
-
+                // Konfigurasi NGINX di EC2
                 sh """
                     ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
-                    cd /home/admin/react-app &&
-                    npm install &&
-                    npm run build &&
-                    nohup npm start > app.log 2>&1 &
+                    sudo rm -rf /home/admin/react-app
+                    sudo systemctl restart nginx
                     "
                 """
-                echo "Aplikasi berhasil dideploy dan berjalan di EC2"
+
+                // Salin hasil build ke EC2
+                sh """
+                    chmod 600 $EC2_KEY
+                    scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ${buildDir}/* ${ec2User}@${ec2Ip}:/home/admin/react-app
+                """
+
+                
+                echo "Aplikasi berhasil dideploy dan disajikan menggunakan NGINX silahkan akses di http://$ec2Ip"
             } catch (err) {
                 error("Delivery process failed: ${err}")
             }
