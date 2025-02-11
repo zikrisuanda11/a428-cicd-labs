@@ -4,14 +4,6 @@ node {
             CI = 'true'
         }
 
-        stage('Install Dependencies') {
-            try {
-                sh 'apt-get update && apt-get install -y openssh-client'
-            } catch (err) {
-                error("Failed to install required dependencies: ${err}")
-            }
-        }
-
         stage('Build') {
             try {
                 sh 'npm install'
