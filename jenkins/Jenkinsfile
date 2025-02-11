@@ -30,6 +30,7 @@ node {
 
             withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
                 try {
+                    sh 'apt-get update && apt-get install -y openssh-client'
                     // Kirim direktori aplikasi ke EC2
                     sh '''
                     chmod 600 $EC2_KEY
