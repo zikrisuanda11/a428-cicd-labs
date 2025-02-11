@@ -1,5 +1,5 @@
 node {
-    docker.image('buildpack-deps:stable').inside('-p 3000:3000') {
+    docker.image('cimg/node:lts').inside('-p 3000:3000') {
         environment {
             CI = 'true'
         }
@@ -30,13 +30,11 @@ node {
 
             withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
                 try {
-                    // Kirim direktori aplikasi ke EC2
                     sh '''
                     chmod 600 $EC2_KEY
                     scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./build $ec2User@$ec2Ip:/home/admin/my-node-app
                     '''
 
-                    // Eksekusi aplikasi di server EC2
                     sh '''
                     ssh -o StrictHostKeyChecking=no -i $EC2_KEY $ec2User@$ec2Ip "
                     cd /home/admin/my-node-app && 
