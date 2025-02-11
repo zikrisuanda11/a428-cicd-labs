@@ -30,17 +30,19 @@ node {
 
             withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
                 try {
-                    sh '''
-                    chmod 600 $EC2_KEY
-                    scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./build $ec2User@$ec2Ip:/home/admin/my-node-app
-                    '''
+                    // Kirim direktori aplikasi ke EC2
+                    sh """
+                        chmod 600 $EC2_KEY
+                        scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./build ${ec2User}@${ec2Ip}:/home/admin/my-node-app
+                    """
 
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no -i $EC2_KEY $ec2User@$ec2Ip "
-                    cd /home/admin/my-node-app && 
-                    nohup npm start > app.log 2>&1 &
-                    "
-                    '''
+                    // Eksekusi aplikasi di server EC2
+                    sh """
+                        ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
+                        cd /home/admin/my-node-app && 
+                        nohup npm start > app.log 2>&1 &
+                        "
+                    """
                     echo "Aplikasi berhasil dideploy dan berjalan di EC2"
                 } catch (err) {
                     error("Delivery process failed: ${err}")
