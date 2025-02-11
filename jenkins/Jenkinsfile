@@ -1,7 +1,11 @@
 node {
-    docker.image('cimg/node:lts').inside('-p 3000:3000') {
+    docker.image('cimg/node:lts').inside('--user root -p 3000:3000') {
         environment {
             CI = 'true'
+        }
+
+        stage('Install SSH') {
+            sh 'apt-get update && apt-get install -y openssh-client'
         }
 
         stage('Build') {
