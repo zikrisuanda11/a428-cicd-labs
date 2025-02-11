@@ -37,7 +37,6 @@ node {
                         ${ec2User}@${ec2Ip}:/home/admin/my-node-app
                     '''
 
-
                     sh """
                         ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
                         cd /home/admin/my-node-app &&
