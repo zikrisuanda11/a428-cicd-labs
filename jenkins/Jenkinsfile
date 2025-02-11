@@ -31,11 +31,11 @@ node {
                     //     chmod 600 $EC2_KEY
                     //     rsync -av --exclude 'node_modules' --exclude '.git' --exclude '.env' -e "ssh -o StrictHostKeyChecking=no -i $EC2_KEY" ./ ${ec2User}@${ec2Ip}:/home/admin/my-node-app
                     // """
-                    sh '''
+                    sh """
                         chmod 600 "$EC2_KEY"
                         scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./src ./public ./package.json ./package-lock.json \
                         ${ec2User}@${ec2Ip}:/home/admin/my-node-app
-                    '''
+                    """
 
                     sh """
                         ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
