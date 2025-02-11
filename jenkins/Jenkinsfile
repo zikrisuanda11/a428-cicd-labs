@@ -1,7 +1,15 @@
 node {
-    docker.image('node:18-bullseye').inside('-p 3000:3000') {
+    docker.image('node:18-bullseye').inside('--network=host') {
         environment {
             CI = 'true'
+        }
+
+        stage('Install Dependencies') {
+            try {
+                sh 'apt-get update && apt-get install -y openssh-client'
+            } catch (err) {
+                error("Failed to install required dependencies: ${err}")
+            }
         }
 
         stage('Build') {
@@ -29,24 +37,26 @@ node {
             def ec2User = 'admin'
 
             withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
-                try {
-                    // Kirim source code ke EC2
-                    sh """
-                        chmod 600 $EC2_KEY
-                        scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./build ${ec2User}@${ec2Ip}:/home/admin/react-app
-                    """
+                withEnv(["SSH_KEY_PATH=${EC2_KEY}"]) {
+                    try {
+                        // Kirim source code ke EC2
+                        sh '''
+                            chmod 600 $SSH_KEY_PATH
+                            scp -o StrictHostKeyChecking=no -i $SSH_KEY_PATH -r ./build ${ec2User}@${ec2Ip}:/home/admin/react-app
+                        '''
 
-                    sh """
-                        ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
-                        cd /home/admin/react-app &&
-                        npm install &&
-                        npm run build &&
-                        nohup npm start > app.log 2>&1 &
-                        "
-                    """
-                    echo "Aplikasi berhasil dideploy dan berjalan di EC2"
-                } catch (err) {
-                    error("Delivery process failed: ${err}")
+                        sh '''
+                            ssh -o StrictHostKeyChecking=no -i $SSH_KEY_PATH ${ec2User}@${ec2Ip} "
+                            cd /home/admin/react-app &&
+                            npm install &&
+                            npm run build &&
+                            nohup npm start > app.log 2>&1 &
+                            "
+                        '''
+                        echo "Aplikasi berhasil dideploy dan berjalan di EC2"
+                    } catch (err) {
+                        error("Delivery process failed: ${err}")
+                    }
                 }
             }
 
