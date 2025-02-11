@@ -1,7 +1,7 @@
 node {
     def buildDir = "${env.WORKSPACE}/build"
 
-    docker.image('node:16-bullseye').inside("-v ${buildDir}:/app/build -p 3000:3000") {
+    docker.image('node:16-bullseye').inside("-v ${buildDir}:/app -p 3000:3000") {
         environment {
             CI = 'true'
         }
@@ -11,13 +11,7 @@ node {
                 sh 'npm install'
                 sh 'npm run build'
                 // Copy hasil build ke volume yang terhubung ke host
-                sh '''
-                    if [ -d "/app/build" ]; then
-                    rm -rf /app/build
-                    fi
-                    cp -r ./build /app/
-                '''
-
+                sh 'cp -r ./build /app/'
             } catch (err) {
                 error("Build failed: ${err}")
             }
