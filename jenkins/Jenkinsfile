@@ -12,8 +12,9 @@ node {
                 sh 'npm run build'
                 // Copy hasil build ke volume yang terhubung ke host
                 // sh 'cp -r ./build /app/'
-                sh 'cp package.json ./build/'
-                sh 'ls ./build'
+                sh 'ls'
+                // sh 'cp ./package.json ./public ./build/'
+                // sh 'ls ./build'
             } catch (err) {
                 error("Build failed: ${err}")
             }
