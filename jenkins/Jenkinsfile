@@ -13,6 +13,7 @@ node {
                 // Copy hasil build ke volume yang terhubung ke host
                 // sh 'cp -r ./build /app/'
                 sh 'cp package.json ./build/'
+                sh 'ls ./build'
             } catch (err) {
                 error("Build failed: ${err}")
             }
