@@ -23,12 +23,15 @@ node {
             withCredentials([file(credentialsId: 'my-ec2-key', variable: 'EC2_KEY')]) {
                 try {
                     // Kirim source code ke EC2
+                    // sh """
+                    //     chmod 600 $EC2_KEY
+                    //     scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./* ${ec2User}@${ec2Ip}:/home/admin/my-node-app
+                    // """
                     sh """
                         chmod 600 $EC2_KEY
-                        scp -o StrictHostKeyChecking=no -i $EC2_KEY -r ./* ${ec2User}@${ec2Ip}:/home/admin/my-node-app
+                        rsync -av --exclude 'node_modules' --exclude '.git' --exclude '.env' -e "ssh -o StrictHostKeyChecking=no -i $EC2_KEY" ./ ${ec2User}@${ec2Ip}:/home/admin/my-node-app
                     """
 
-                    // Build dan jalankan aplikasi di server EC2
                     sh """
                         ssh -o StrictHostKeyChecking=no -i $EC2_KEY ${ec2User}@${ec2Ip} "
                         cd /home/admin/my-node-app &&
